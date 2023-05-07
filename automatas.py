@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 from __future__ import annotations
+from tabulate import tabulate
+import re
+import numpy as np
 
 class Automata:
-  def __init__(self, alfabeto, estados, estadoInicial, estadosAceptacion,Delta):
-    self.alfabeto = alfabeto
-    self.estados = estados
-    self.estadoInicial = estadoInicial
-    self.estadosAceptacion = estadosAceptacion
-    self.delta = Delta
+  def __init__(self, alphabet, states, init_state, accep_states, Delta):
+    self.alfabeto = alphabet 
+    self.estados = states 
+    self.estadoInicial = init_state
+    self.estadosAceptacion = accep_states 
+    self.delta = self.transitions_parser(alphabet, states, Delta)
     self.estados_inaccesibles = None
 
   def exportar(self, archivo):
@@ -20,6 +23,21 @@ class Automata:
     return 
   def hallarEstadosInaccesibles(self):
     return 
+  def transitions_parser(self, alphabet, states, delta):
+    col_names =  [i for i in alphabet] + ['$']
+    col = {i: idx+1 for idx, i in enumerate(col_names)}
+    row = {i: idx for idx, i in enumerate(states)}
+    col_names = ['delta'] + col_names 
+    data = np.empty((len(row), len(col_names)), dtype=object)
+    for i in delta:
+      split = re.split(r'[:, >, ;]', i)
+      idx_row = int(row.get(split[0]))
+      idx_col = int(col.get(split[1]))
+      data[idx_row, 0] = split[0]
+      data[idx_row, idx_col] = str(split[2:])
+      
+    print(tabulate(data, headers=col_names, tablefmt="fancy_grid"))
+    return data
 
 class AFD(Automata):
   def __init__(self, alfabeto, estados, estadoInicial, estadosAceptacion, Delta):
