@@ -3,15 +3,71 @@ from __future__ import annotations
 from tabulate import tabulate
 import re
 import numpy as np
+import graphviz
+
+class Node:
+  def __init__(self, name, automata=None, childs=None, parent=None):
+    self.name = name
+    self.a = automata
+    self.parent = parent
+    self.childs = self.set_childs(self.name)
+
+  def set_childs(self, name):
+    state = name[0]
+    s = name[1]
+    if s:
+      idx_row = self.a.row.get(state)
+      idx_col = self.a.col.get(s[0])
+      res = self.a.delta[idx_row, idx_col]
+      s = s[1:]
+      if res:
+        res = [[i, s] for i in res]
+        for idx, i in enumerate(res):
+          n_node = Node(i, automata=self.a, parent=self)
+      else:
+        self.back_trace(True)
+    else:
+      self.back_trace()
+
+  def back_trace(self, abort=False):
+    temp = []
+    t = self
+    while t.parent:
+      temp.append(t.name)
+      t = t.parent
+    temp.append(t.name)
+    #path = ' -> '.join(temp[::-1])
+    temp = temp[::-1]
+    if abort:
+      temp.append('Abortado')
+    else:
+      if temp[-1][0] in self.a.estadosAceptacion:
+        temp.append('Aceptacion')
+      else: 
+        temp.append('No aceptacion')
+    #temp = ' -> '.join([', '.join(i) for i in temp])
+    print(temp)
+    #return path
+
+  def __str__(self):
+    return str(self.name)
 
 class Automata:
   def __init__(self, alphabet, states, init_state, accep_states, Delta):
     self.alfabeto = alphabet 
     self.estados = states 
-    self.estadoInicial = init_state
+    self.init_state = init_state
     self.estadosAceptacion = accep_states 
+    self.row = {}
+    self.col = {}
     self.delta = self.transitions_parser(alphabet, states, Delta)
     self.estados_inaccesibles = None
+  
+  def childs(self, temp):
+    return 
+
+  def process(self, s):
+    root = Node([self.init_state, s], self)
 
   def exportar(self, archivo):
     return 
@@ -23,18 +79,19 @@ class Automata:
     return 
   def hallarEstadosInaccesibles(self):
     return 
+
   def transitions_parser(self, alphabet, states, delta):
     col_names =  [i for i in alphabet] + ['$']
-    col = {i: idx+1 for idx, i in enumerate(col_names)}
-    row = {i: idx for idx, i in enumerate(states)}
+    self.col = {i: idx+1 for idx, i in enumerate(col_names)}
+    self.row = {i: idx for idx, i in enumerate(states)}
     col_names = ['delta'] + col_names 
-    data = np.empty((len(row), len(col_names)), dtype=object)
+    data = np.empty((len(self.row), len(col_names)), dtype=object)
     for i in delta:
       split = re.split(r'[:, >, ;]', i)
-      idx_row = int(row.get(split[0]))
-      idx_col = int(col.get(split[1]))
+      idx_row = int(self.row.get(split[0]))
+      idx_col = int(self.col.get(split[1]))
       data[idx_row, 0] = split[0]
-      data[idx_row, idx_col] = str(split[2:])
+      data[idx_row, idx_col] = split[2:]
       
     print(tabulate(data, headers=col_names, tablefmt="fancy_grid"))
     return data

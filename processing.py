@@ -4,7 +4,6 @@ class Processing:
   def __init__(self):
     return
   def process(delta, s):
-
     return
 
   def string_process_AFD(cadena, esAceptada, listaEstadoSimboloDeProcesamiento):
