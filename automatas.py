@@ -94,6 +94,16 @@ class Automata:
       data[idx_row, idx_col] = split[2:]
       
     print(tabulate(data, headers=col_names, tablefmt="fancy_grid"))
+
+    # DEBUG
+    print('')
+    print('data:')
+    print(data)
+    print('')
+    print('states:')
+    print(states)
+    print('')
+
     return data
 
 class AFD(Automata):
@@ -122,8 +132,63 @@ class AFD(Automata):
     return
   def hallarProductoCartesiano(self, afd1: AFD, afd2: AFD, operacion: str):
     return 
+  
   def simplificarAFD(self, afdInput: AFD):
-    return
+    # Componentes de M prima
+    states = []
+    init_state = []
+    accep_states = []
+    delta = []
+    # Tabla triangular
+    table = np.full((len(afdInput.estados), len(afdInput.estados)), 'E', dtype=str)
+    # Iteración en la que vamos
+    iter_number = 1
+
+    # Primera iteración
+    for i in range(1, len(table)):
+      for j in range(i):
+        if ((afdInput.delta[i-1][0] in afdInput.estadosAceptacion) and (afdInput.delta[j][0] not in afdInput.estadosAceptacion) or (afdInput.delta[i-1][0] not in afdInput.estadosAceptacion) and (afdInput.delta[j][0] in afdInput.estadosAceptacion)):
+          table[i][j] = str(iter_number)
+
+    # DEBUG, imprimimos la tabla
+    print('')
+    print (table)
+    print('')
+
+    # Variable de control para finalizar algoritmo
+    marked_this_iter = True
+
+    # Iteraciones siguientes
+    """
+    while(marked_this_iter):
+      iter_number += 1
+      marked_this_iter = False
+
+      # Fila i
+      for i in range(1, len(table)):
+        # Columna j
+        for j in range(len(table) - i, len(table)):
+          # Si la celda no ha sido marcada previamente
+          if (table[i][j] != 'E'):
+            # Para cada símbolo del alfabeto
+            for k in range(len(afdInput.alfabeto)):
+              # Verificamos si debemos marcar la celda
+              if (table[int(afdInput.delta[i-1][k+1][0][1:])][int(afdInput.delta[j][k+1][0][1:])] != 'E'):
+                # Marcamos la celda escribiendo la iteración actual
+                table[i][j] = str(iter_number)
+                # Debemos hacer al menos una iteración más
+                marked_this_iter = True
+                break
+
+      # DEBUG, imprimimos la tabla al final de cada iteración
+      print('')
+      print (table)
+      print('')
+
+    # TODO calcular la salida
+    """
+      
+    return AFD(afdInput.alfabeto, states, init_state, accep_states, delta)
 
 class AFN(Automata):
   def __init__(self, alfabeto, estados, estadoInicial, estadosAceptacion, Delta):
