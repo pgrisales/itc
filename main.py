@@ -33,6 +33,7 @@ if __name__ == '__main__':
   elif a_type == 'nfa':
     nfa = AFN(alphabet, states, init_state, accep_states, delta)
     nfa.process('aabb') 
+    #nfa.draw()
   else:
     nfa_lambda = AFNLambda(alphabet, states, init_state, accep_states, delta)
     nfa_lambda.process('aabb') 

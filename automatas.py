@@ -3,7 +3,9 @@ from __future__ import annotations
 from tabulate import tabulate
 import re
 import numpy as np
-import graphviz
+from graphviz import Digraph
+
+
 
 class Node:
   def __init__(self, name, automata=None, childs=None, parent=None):
@@ -41,7 +43,7 @@ class Node:
     if abort:
       temp.append('Abortado')
     else:
-      if temp[-1][0] in self.a.estadosAceptacion:
+      if temp[-1][0] in self.a.accepting_states:
         temp.append('Aceptacion')
       else: 
         temp.append('No aceptacion')
@@ -53,22 +55,52 @@ class Node:
     return str(self.name)
 
 class Automata:
-  def __init__(self, alphabet, states, init_state, accep_states, Delta):
+  def __init__(self, alphabet, states, init_state, accepting_states, Delta):
     self.alfabeto = alphabet 
     self.estados = states 
     self.init_state = init_state
-    self.estadosAceptacion = accep_states 
+    self.accepting_states = accepting_states 
     self.row = {}
     self.col = {}
     self.delta = self.transitions_parser(alphabet, states, Delta)
     self.estados_inaccesibles = None
-  
-  def childs(self, temp):
-    return 
+ 
+#  def draw(self):
+  def transitions_parser(self, alphabet, states, delta):
+    f = Digraph('finite_state_machine', filename='fsm.gv')
+    f.attr(rankdir='LR', size='8,5')
+
+    f.attr('node', shape='circle')
+    f.node(self.init_state)
+
+    f.attr('node', shape='doublecircle')
+    print(self.accepting_states)
+    for i in self.accepting_states:
+      f.node(i)
+
+    col_names =  [i for i in alphabet] + ['$']
+    self.col = {i: idx+1 for idx, i in enumerate(col_names)}
+    self.row = {i: idx for idx, i in enumerate(states)}
+    col_names = ['delta'] + col_names 
+    data = np.empty((len(self.row), len(col_names)), dtype=object)
+
+    f.attr('node', shape='circle')
+
+    for i in delta:
+      split = re.split(r'[:, >, ;]', i)
+      idx_row = int(self.row.get(split[0]))
+      idx_col = int(self.col.get(split[1]))
+      for i in split[2:]:
+        f.edge(split[0], i, label=col_names[idx_col])
+
+      data[idx_row, 0] = split[0]
+      data[idx_row, idx_col] = split[2:]
+    f.view() 
+    print(tabulate(data, headers=col_names, tablefmt="fancy_grid"))
+    return data
 
   def process(self, s):
     root = Node([self.init_state, s], self)
-
   def exportar(self, archivo):
     return 
   def procesarCadena(self, cadena):
@@ -80,26 +112,11 @@ class Automata:
   def hallarEstadosInaccesibles(self):
     return 
 
-  def transitions_parser(self, alphabet, states, delta):
-    col_names =  [i for i in alphabet] + ['$']
-    self.col = {i: idx+1 for idx, i in enumerate(col_names)}
-    self.row = {i: idx for idx, i in enumerate(states)}
-    col_names = ['delta'] + col_names 
-    data = np.empty((len(self.row), len(col_names)), dtype=object)
-    for i in delta:
-      split = re.split(r'[:, >, ;]', i)
-      idx_row = int(self.row.get(split[0]))
-      idx_col = int(self.col.get(split[1]))
-      data[idx_row, 0] = split[0]
-      data[idx_row, idx_col] = split[2:]
-      
-    print(tabulate(data, headers=col_names, tablefmt="fancy_grid"))
-    return data
 
 class AFD(Automata):
-  def __init__(self, alfabeto, estados, estadoInicial, estadosAceptacion, Delta):
+  def __init__(self, alfabeto, estados, estadoInicial, accepting_states, Delta):
     self.estados_limbo = None
-    Automata.__init__(self, alfabeto, estados, estadoInicial, estadosAceptacion, Delta)
+    Automata.__init__(self, alfabeto, estados, estadoInicial, accepting_states, Delta)
 
 #  def __init__(self, nombreArchivo):
 #    return
@@ -126,8 +143,8 @@ class AFD(Automata):
     return
 
 class AFN(Automata):
-  def __init__(self, alfabeto, estados, estadoInicial, estadosAceptacion, Delta):
-    Automata.__init__(self, alfabeto, estados, estadoInicial, estadosAceptacion, Delta)
+  def __init__(self, alfabeto, estados, estadoInicial, accepting_states, Delta):
+    Automata.__init__(self, alfabeto, estados, estadoInicial, accepting_states, Delta)
 
 #  def __init__(self, nombreArchivo):
 #    return
@@ -148,7 +165,7 @@ class AFN(Automata):
     return
 
 class AFNLambda(Automata):
-  def __init__(self, alfabeto, estados, estadoInicial, estadosAceptacion, Delta):
-    AFN.__init__(self, alfabeto, estados, estadoInicial, estadosAceptacion, Delta)
+  def __init__(self, alfabeto, estados, estadoInicial, accepting_states, Delta):
+    AFN.__init__(self, alfabeto, estados, estadoInicial, accepting_states, Delta)
   def __str__(self):
     return  'AFN-Lambda'
