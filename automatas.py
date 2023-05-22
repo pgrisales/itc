@@ -95,7 +95,9 @@ class Automata:
 
       data[idx_row, 0] = split[0]
       data[idx_row, idx_col] = split[2:]
-    f.view() 
+      
+    #f.view() 
+    
     print(tabulate(data, headers=col_names, tablefmt="fancy_grid"))
     return data
 
