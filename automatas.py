@@ -5,8 +5,6 @@ import re
 import numpy as np
 from graphviz import Digraph
 
-
-
 class Node:
   def __init__(self, name, automata=None, childs=None, parent=None):
     self.name = name
@@ -50,7 +48,6 @@ class Node:
     #temp = ' -> '.join([', '.join(i) for i in temp])
     print(temp)
     #return path
-
   def __str__(self):
     return str(self.name)
 
@@ -62,10 +59,12 @@ class Automata:
     self.accepting_states = accepting_states 
     self.row = {}
     self.col = {}
-    self.delta = self.transitions_parser(alphabet, states, Delta)
+    self.delta, self.graph = self.transitions_parser(alphabet, states, Delta)
     self.estados_inaccesibles = None
  
-#  def draw(self):
+  def view(self):
+    self.graph.view()
+    
   def transitions_parser(self, alphabet, states, delta):
     f = Digraph('finite_state_machine', filename='fsm.gv')
     f.attr(rankdir='LR', size='8,5')
@@ -95,9 +94,8 @@ class Automata:
 
       data[idx_row, 0] = split[0]
       data[idx_row, idx_col] = split[2:]
-    f.view() 
     print(tabulate(data, headers=col_names, tablefmt="fancy_grid"))
-    return data
+    return data, f
 
   def process(self, s):
     root = Node([self.init_state, s], self)
@@ -139,6 +137,10 @@ class AFD(Automata):
     return
   def hallarProductoCartesiano(self, afd1: AFD, afd2: AFD, operacion: str):
     return 
+
+  def producto_cartesiano(self, b):
+    return
+
   def simplificarAFD(self, afdInput: AFD):
     return
 
