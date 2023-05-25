@@ -5,169 +5,233 @@ import re
 import numpy as np
 from graphviz import Digraph
 
+
 class Node:
-  def __init__(self, name, automata=None, childs=None, parent=None):
-    self.name = name
-    self.a = automata
-    self.parent = parent
-    self.childs = self.set_childs(self.name)
+    def __init__(self, name, automata=None, childs=None, parent=None):
+        self.name = name
+        self.a = automata
+        self.parent = parent
+        self.childs = self.set_childs(self.name)
 
-  def set_childs(self, name):
-    state = name[0]
-    s = name[1]
-    if s:
-      idx_row = self.a.row.get(state)
-      idx_col = self.a.col.get(s[0])
-      res = self.a.delta[idx_row, idx_col]
-      s = s[1:]
-      if res:
-        res = [[i, s] for i in res]
-        for idx, i in enumerate(res):
-          n_node = Node(i, automata=self.a, parent=self)
-      else:
-        self.back_trace(True)
-    else:
-      self.back_trace()
+    def set_childs(self, name):
+        state = name[0]
+        s = name[1]
+        if s:
+            idx_row = self.a.row.get(state)
+            idx_col = self.a.col.get(s[0])
+            res = self.a.delta[idx_row, idx_col]
+            s = s[1:]
+            if res:
+                res = [[i, s] for i in res]
+                for idx, i in enumerate(res):
+                    n_node = Node(i, automata=self.a, parent=self)
+            else:
+                self.back_trace(True)
+        else:
+            self.back_trace()
 
-  def back_trace(self, abort=False):
-    temp = []
-    t = self
-    while t.parent:
-      temp.append(t.name)
-      t = t.parent
-    temp.append(t.name)
-    #path = ' -> '.join(temp[::-1])
-    temp = temp[::-1]
-    if abort:
-      temp.append('Abortado')
-    else:
-      if temp[-1][0] in self.a.accepting_states:
-        temp.append('Aceptacion')
-      else: 
-        temp.append('No aceptacion')
-    #temp = ' -> '.join([', '.join(i) for i in temp])
-    print(temp)
-    #return path
-  def __str__(self):
-    return str(self.name)
+    def back_trace(self, abort=False):
+        temp = []
+        t = self
+        while t.parent:
+            temp.append(t.name)
+            t = t.parent
+        temp.append(t.name)
+        # path = ' -> '.join(temp[::-1])
+        temp = temp[::-1]
+        if abort:
+            temp.append('Abortado')
+        else:
+            if temp[-1][0] in self.a.accepting_states:
+                temp.append('Aceptacion')
+            else:
+                temp.append('No aceptacion')
+        # temp = ' -> '.join([', '.join(i) for i in temp])
+        print(temp)
+        # return path
+
+    def __str__(self):
+        return str(self.name)
+
 
 class Automata:
-  def __init__(self, alphabet, states, init_state, accepting_states, Delta):
-    self.alfabeto = alphabet 
-    self.estados = states 
-    self.init_state = init_state
-    self.accepting_states = accepting_states 
-    self.row = {}
-    self.col = {}
-    self.delta, self.graph = self.transitions_parser(alphabet, states, Delta)
-    self.estados_inaccesibles = None
- 
-  def view(self):
-    self.graph.view()
-    
-  def transitions_parser(self, alphabet, states, delta):
-    f = Digraph('finite_state_machine', filename='fsm.gv')
-    f.attr(rankdir='LR', size='8,5')
+    def __init__(self, alphabet, states, init_state, accepting_states, Delta):
+        self.alfabeto = alphabet
+        self.estados = states
+        self.init_state = init_state
+        self.accepting_states = accepting_states
+        self.row = {}
+        self.col = {}
+        self.delta, self.graph = self.transitions_parser(alphabet, states, Delta)
+        self.estados_inaccesibles = None
 
-    f.attr('node', shape='circle')
-    f.node(self.init_state)
+    def view(self):
+        self.graph.view()
 
-    f.attr('node', shape='doublecircle')
-    print(self.accepting_states)
-    for i in self.accepting_states:
-      f.node(i)
+    def transitions_parser(self, alphabet, states, delta):
+        f = Digraph('finite_state_machine', filename='fsm.gv')
+        f.attr(rankdir='LR', size='8,5')
 
-    col_names =  [i for i in alphabet] + ['$']
-    self.col = {i: idx+1 for idx, i in enumerate(col_names)}
-    self.row = {i: idx for idx, i in enumerate(states)}
-    col_names = ['delta'] + col_names 
-    data = np.empty((len(self.row), len(col_names)), dtype=object)
+        f.attr('node', shape='circle')
+        f.node(self.init_state)
 
-    f.attr('node', shape='circle')
+        f.attr('node', shape='doublecircle')
+        print(self.accepting_states)
+        for i in self.accepting_states:
+            f.node(i)
 
-    for i in delta:
-      split = re.split(r'[:, >, ;]', i)
-      idx_row = int(self.row.get(split[0]))
-      idx_col = int(self.col.get(split[1]))
-      for i in split[2:]:
-        f.edge(split[0], i, label=col_names[idx_col])
+        col_names = [i for i in alphabet] + ['$']
+        self.col = {i: idx + 1 for idx, i in enumerate(col_names)}
+        self.row = {i: idx for idx, i in enumerate(states)}
+        col_names = ['delta'] + col_names
+        data = np.empty((len(self.row), len(col_names)), dtype=object)
 
-      data[idx_row, 0] = split[0]
-      data[idx_row, idx_col] = split[2:]
-    print(tabulate(data, headers=col_names, tablefmt="fancy_grid"))
-    return data, f
+        f.attr('node', shape='circle')
 
-  def process(self, s):
-    root = Node([self.init_state, s], self)
-  def exportar(self, archivo):
-    return 
-  def procesarCadena(self, cadena):
-    return False
-  def procesarCadenaConDetalles(self, cadena):
-    return False 
-  def procesarListaCadenas(self, listaCadenas, nombreArchivo, imprimirPantalla):
-    return 
-  def hallarEstadosInaccesibles(self):
-    return 
+        for i in delta:
+            split = re.split(r'[:, >, ;]', i)
+            idx_row = int(self.row.get(split[0]))
+            idx_col = int(self.col.get(split[1]))
+            for i in split[2:]:
+                f.edge(split[0], i, label=col_names[idx_col])
+
+            data[idx_row, 0] = split[0]
+            data[idx_row, idx_col] = split[2:]
+        print(tabulate(data, headers=col_names, tablefmt="fancy_grid"))
+        return data, f
+
+    def process(self, s):
+        root = Node([self.init_state, s], self)
+
+    def exportar(self, archivo):
+        return
+
+    def procesarCadena(self, cadena):
+        return False
+
+    def procesarCadenaConDetalles(self, cadena):
+        return False
+
+    def procesarListaCadenas(self, listaCadenas, nombreArchivo, imprimirPantalla):
+        return
+
+    def hallarEstadosInaccesibles(self):
+        return
 
 
 class AFD(Automata):
-  def __init__(self, alfabeto, estados, estadoInicial, accepting_states, Delta):
-    self.estados_limbo = None
-    Automata.__init__(self, alfabeto, estados, estadoInicial, accepting_states, Delta)
+    def __init__(self, alfabeto, estados, estadoInicial, accepting_states, Delta):
+        self.estados_limbo = None
+        Automata.__init__(self, alfabeto, estados, estadoInicial, accepting_states, Delta)
 
-#  def __init__(self, nombreArchivo):
-#    return
+    #  def __init__(self, nombreArchivo):
+    #    return
 
-  def verificarCorregirCompletitudAFD(self):
-    return
-  def hallarEstadosLimbo(self):
-    return
-  def __str__(self):
-    return  'AFD'
-  def imprimirAFDSimplificado(self):
-    return
-  def hallarComplemento(self, afdInput: AFD):
-    return 
-  def hallarProductoCartesianoY(self, afd1: AFD, afd2: AFD):
-    return
-  def hallarProductoCartesianoO(self, afd1: AFD, afd2: AFD):
-    return
-  def hallarProductoCartesianoDiferenciaSimetrica(self, afd1: AFD, afd2: AFD):
-    return
-  def hallarProductoCartesiano(self, afd1: AFD, afd2: AFD, operacion: str):
-    return 
+    def verificarCorregirCompletitudAFD(self):
+        return
 
-  def producto_cartesiano(self, b):
-    return
+    def hallarEstadosLimbo(self):
+        return
 
-  def simplificarAFD(self, afdInput: AFD):
-    return
+    def __str__(self):
+        return 'AFD'
+
+    def imprimirAFDSimplificado(self):
+        return
+
+    def hallarComplemento(self, afdInput: AFD):
+        return
+
+    @classmethod
+    def hallarProductoCartesianoY(self, afd1: AFD, afd2: AFD):
+        return self.hallarProductoCartesiano(afd1, afd2, "interseccion")
+    @classmethod
+    def hallarProductoCartesianoO(self, afd1: AFD, afd2: AFD):
+        return self.hallarProductoCartesiano(afd1, afd2, "union")
+    @classmethod
+    def hallarProductoCartesianoDiferenciaSimetrica(self, afd1: AFD, afd2: AFD):
+        return self.hallarProductoCartesiano(afd1, afd2, "diferencia simetrica")
+    @classmethod
+    def hallarProductoCartesiano(self, afd1: AFD, afd2: AFD, operacion: str):
+        nuevosEstados = []
+        llegada= []
+        nuevoestadoInicial = ""
+        nuevoDelta = []
+        nuevosEstadosAceptacion = []
+        nuevoalfabeto = afd1.alfabeto
+        parejas = []
+        delta1 = afd1.delta
+        delta2 = afd2.delta
+        for i in afd1.estados:
+            for j in afd2.estados:
+                parejas.append(i)
+                parejas.append(j)
+                nuevosEstados.append(parejas)
+                parejas = []
+        nuevoestadoInicial = str(nuevosEstados[0][0])+str(nuevosEstados[0][1])
+        for i in nuevosEstados:
+            for j in range(len(nuevoalfabeto)):
+                for k in delta1:
+                    if k[0] == i[0]:
+                        llegada.append(k[j+1][0])
+                for k in delta2:
+                    if k[0] == i[1]:
+                        llegada.append(k[j+1][0])
+                delta = str(i[0]) + str(i[1])+ ":"+nuevoalfabeto[j]+">"+str(llegada[0])+str(llegada[1])
+                delta = str(delta)
+                nuevoDelta.append(delta)
+                llegada = []
+                delta = ""
+        if operacion == "interseccion":
+            nuevosEstadosAceptacion = set(afd1.accepting_states) & set(afd2.accepting_states)
+        elif operacion == "union":
+            nuevosEstadosAceptacion = set(afd1.accepting_states) | set(afd2.accepting_states)
+        elif operacion == "diferencia":
+            nuevosEstadosAceptacion = set(afd1.accepting_states) - set(afd2.accepting_states)
+        else:
+            nuevosEstadosAceptacion = set(afd1.accepting_states) ^ set(afd2.accepting_states)
+        for i in range(len(nuevosEstados)):
+            nuevosEstados[i] = str(nuevosEstados[i][0])+str(nuevosEstados[i][1])
+        return AFD(nuevoalfabeto, nuevosEstados, nuevoestadoInicial, nuevosEstadosAceptacion, nuevoDelta)
+    def producto_cartesiano(self, b, opeacion):
+        return
+
+    def simplificarAFD(self, afdInput: AFD):
+        return
+
 
 class AFN(Automata):
-  def __init__(self, alfabeto, estados, estadoInicial, accepting_states, Delta):
-    Automata.__init__(self, alfabeto, estados, estadoInicial, accepting_states, Delta)
+    def __init__(self, alfabeto, estados, estadoInicial, accepting_states, Delta):
+        Automata.__init__(self, alfabeto, estados, estadoInicial, accepting_states, Delta)
 
-#  def __init__(self, nombreArchivo):
-#    return
+    #  def __init__(self, nombreArchivo):
+    #    return
 
-  def __str__(self):
-    return  'AFN'
-  def imprimirAFNSimplificado(self):
-    return
-  def AFNtoAFD(self, afn: AFN):
-    return
-  def computarTodosLosProcesamientos(self, cadena, nombreArchivo):
-    return
-  def procesarCadenaConversion(self, cadena):
-    return False
-  def procesarCadenaConDetallesConversion(self, cadena):
-    return False
-  def procesarListaCadenasConversion(self, listaCadenas,nombreArchivo, imprimirPantalla):
-    return
+    def __str__(self):
+        return 'AFN'
+
+    def imprimirAFNSimplificado(self):
+        return
+
+    def AFNtoAFD(self, afn: AFN):
+        return
+
+    def computarTodosLosProcesamientos(self, cadena, nombreArchivo):
+        return
+
+    def procesarCadenaConversion(self, cadena):
+        return False
+
+    def procesarCadenaConDetallesConversion(self, cadena):
+        return False
+
+    def procesarListaCadenasConversion(self, listaCadenas, nombreArchivo, imprimirPantalla):
+        return
+
 
 class AFNLambda(Automata):
-  def __init__(self, alfabeto, estados, estadoInicial, accepting_states, Delta):
-    AFN.__init__(self, alfabeto, estados, estadoInicial, accepting_states, Delta)
-  def __str__(self):
-    return  'AFN-Lambda'
+    def __init__(self, alfabeto, estados, estadoInicial, accepting_states, Delta):
+        AFN.__init__(self, alfabeto, estados, estadoInicial, accepting_states, Delta)
+
+    def __str__(self):
+        return 'AFN-Lambda'
