@@ -153,10 +153,12 @@ class AFD(Automata):
           table[i][j] = '1'
 
     # DEBUG, imprimimos la tabla
+    '''
     print('')
     print (table)
     print('')
-    
+    '''
+
     # Iteración en la que vamos
     iter_number = 1
 
@@ -175,8 +177,8 @@ class AFD(Automata):
             # Para cada símbolo del alfabeto
             for k in range(len(afdInput.alfabeto)):
 
-              # DEBUG
-              print('Evaluating s' + str(i) + ' and s' + str(j) + ', they go to s' + afdInput.delta[i][k+1][0][1:] + ' and s' + afdInput.delta[j][k+1][0][1:])
+              # DEBUG, estado de la evaluación de cada casilla
+              # print('Evaluating s' + str(i) + ' and s' + str(j) + ', they go to s' + afdInput.delta[i][k+1][0][1:] + ' and s' + afdInput.delta[j][k+1][0][1:])
 
               # Verificamos si debemos marcar la celda
               s1 = int(afdInput.delta[i][k+1][0][1:])
@@ -197,9 +199,11 @@ class AFD(Automata):
                   break
 
       # DEBUG, imprimimos la tabla al final de cada iteración
+      '''
       print('')
       print (table)
       print('')
+      '''
 
     # Calculamos los estados de M' y las clases de equivalencia
     accounted_for = np.full(len(afdInput.estados), False, dtype=bool)
@@ -265,7 +269,8 @@ class AFD(Automata):
             delta.append(i + ':' + afdInput.alfabeto[k] + '>' + j)
             break
 
-    # DEBUG
+    # DEBUG, imprimir los elementos finales de M'
+    '''
     print('Equivalence classes:')
     print(equivalence)
     print('')
@@ -281,6 +286,7 @@ class AFD(Automata):
     print('Final Delta:')
     print(delta)
     print('')
+    '''
 
     return AFD(afdInput.alfabeto, states, init_state, accep_states, delta)
 
