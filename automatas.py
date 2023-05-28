@@ -136,58 +136,152 @@ class AFD(Automata):
   def simplificarAFD(self, afdInput: AFD):
     # Componentes de M prima
     states = []
-    init_state = []
+    init_state = 0
     accep_states = []
     delta = []
     # Tabla triangular
     table = np.full((len(afdInput.estados), len(afdInput.estados)), 'E', dtype=str)
-    # Iteración en la que vamos
-    iter_number = 1
+
+    # La diagonal son los números de estado
+    for i in range(len(table)):
+      table[i][i] = i
 
     # Primera iteración
     for i in range(1, len(table)):
       for j in range(i):
-        if ((afdInput.delta[i-1][0] in afdInput.estadosAceptacion) and (afdInput.delta[j][0] not in afdInput.estadosAceptacion) or (afdInput.delta[i-1][0] not in afdInput.estadosAceptacion) and (afdInput.delta[j][0] in afdInput.estadosAceptacion)):
-          table[i][j] = str(iter_number)
+        if ((afdInput.delta[i][0] in afdInput.estadosAceptacion) and (afdInput.delta[j][0] not in afdInput.estadosAceptacion) or (afdInput.delta[i][0] not in afdInput.estadosAceptacion) and (afdInput.delta[j][0] in afdInput.estadosAceptacion)):
+          table[i][j] = '1'
 
     # DEBUG, imprimimos la tabla
     print('')
     print (table)
     print('')
+    
+    # Iteración en la que vamos
+    iter_number = 1
 
     # Variable de control para finalizar algoritmo
     marked_this_iter = True
 
     # Iteraciones siguientes
-    """
     while(marked_this_iter):
       iter_number += 1
       marked_this_iter = False
 
-      # Fila i
       for i in range(1, len(table)):
-        # Columna j
-        for j in range(len(table) - i, len(table)):
+        for j in range(i):
           # Si la celda no ha sido marcada previamente
-          if (table[i][j] != 'E'):
+          if (table[i][j] == 'E'):
             # Para cada símbolo del alfabeto
             for k in range(len(afdInput.alfabeto)):
+
+              # DEBUG
+              print('Evaluating s' + str(i) + ' and s' + str(j) + ', they go to s' + afdInput.delta[i][k+1][0][1:] + ' and s' + afdInput.delta[j][k+1][0][1:])
+
               # Verificamos si debemos marcar la celda
-              if (table[int(afdInput.delta[i-1][k+1][0][1:])][int(afdInput.delta[j][k+1][0][1:])] != 'E'):
-                # Marcamos la celda escribiendo la iteración actual
-                table[i][j] = str(iter_number)
-                # Debemos hacer al menos una iteración más
-                marked_this_iter = True
-                break
+              s1 = int(afdInput.delta[i][k+1][0][1:])
+              s2 = int(afdInput.delta[j][k+1][0][1:])
+              if (s1 == 0 or s2 == len(afdInput.estados)):
+                if (table[s2][s1] != 'E'):
+                  # Marcamos la celda escribiendo la iteración actual
+                  table[i][j] = str(iter_number)
+                  # Debemos hacer al menos una iteración más
+                  marked_this_iter = True
+                  break
+              else:
+                if ((s1 != s2) and table[s1][s2] != 'E'):
+                  # Marcamos la celda escribiendo la iteración actual
+                  table[i][j] = str(iter_number)
+                  # Debemos hacer al menos una iteración más
+                  marked_this_iter = True
+                  break
 
       # DEBUG, imprimimos la tabla al final de cada iteración
       print('')
       print (table)
       print('')
 
-    # TODO calcular la salida
-    """
-      
+    # Calculamos los estados de M' y las clases de equivalencia
+    accounted_for = np.full(len(afdInput.estados), False, dtype=bool)
+    new_state = 0
+    equivalence = {}
+    # Para cada columna (estado) de la tabla triangular
+    for j in range(len(table)):
+      # Si este estado no pertenece ya a una clase de equivalencia
+      if (not accounted_for[j]):
+        # Añadir estado nuevo
+        accounted_for[j] = True
+        states.append('s' + str(new_state))
+        # Armar la clase de equivalencia a la que pertenecerá
+        equivalence['s' + str(new_state)] = {j}
+        # Para cada relación con otros estados
+        for i in range(j + 1, len(table)):
+          # Si hay un estado i equivalente a j
+          if (table[i][j] == 'E'):
+            # Añadirlo a la misma clase de equivalencia
+            equivalence['s' + str(new_state)].add(i)
+            # Marcar estado i como usado
+            accounted_for[i] = True
+        # Potencial siguiente estado de M'
+        new_state += 1
+    
+    # Estado inicial
+    for i in equivalence:
+      if (int(afdInput.init_state[1:]) in equivalence[i]):
+        init_state = i
+        break
+
+    # Estados de aceptación
+    # Para cada estado i de M'
+    for i in equivalence:
+      # Para cada estado j de M que forma parte del estado i de M'
+      for j in equivalence[i]:
+        # Si algun estado j es de aceptación, i es de aceptación
+        if (('s' + str(j)) in afdInput.estadosAceptacion):
+          accep_states.append(i)
+          break
+
+    # Delta
+    # Para cada estado i de M'
+    for i in equivalence:
+      # Con un estado j de M cualquiera perteneciente a i
+      for j in equivalence[i]:
+        origin_state = j
+        break
+
+      # DEBUG
+      # print("Checking " + i + ", chosen origin state is s" + str(origin_state))
+
+      # Para cada símbolo del alfabeto
+      for k in range(len(afdInput.alfabeto)):
+        target_state = int(afdInput.delta[origin_state][k+1][0][1:])
+
+        # DEBUG
+        # print("Checking simbol " + afdInput.alfabeto[k] + ", target state is " + str(target_state))
+
+        # Hallar la transición d'(i,k)
+        for j in equivalence:
+          if (target_state in equivalence[j]):
+            delta.append(i + ':' + afdInput.alfabeto[k] + '>' + j)
+            break
+
+    # DEBUG
+    print('Equivalence classes:')
+    print(equivalence)
+    print('')
+    print('Final states:')
+    print(states)
+    print('')
+    print('Initial state:')
+    print(init_state)
+    print('')
+    print('Acceptance states:')
+    print(accep_states)
+    print('')
+    print('Final Delta:')
+    print(delta)
+    print('')
+
     return AFD(afdInput.alfabeto, states, init_state, accep_states, delta)
 
 class AFN(Automata):

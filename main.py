@@ -10,8 +10,8 @@ if __name__ == '__main__':
   init_state = []
   accep_states = []
   delta = []
-  f = open('./input1.txt').read().splitlines()
-  a_type = f[0][2:] 
+  f = open('./simplificar3.txt').read().splitlines()
+  a_type = f[0][2:]
   for i in range(0, len(f)):
     if f[i][0] == '#':
       s = f[i]
@@ -29,11 +29,11 @@ if __name__ == '__main__':
 
   if a_type == 'dfa':
     dfa = AFD(alphabet, states, init_state, accep_states, delta)
-    dfa.process('aa')
+    dfa.process('baba')
     dfa.simplificarAFD(dfa)
   elif a_type == 'nfa':
     nfa = AFN(alphabet, states, init_state, accep_states, delta)
-    nfa.process('aa')
+    nfa.process('baba')
   else:
     nfa_lambda = AFNLambda(alphabet, states, init_state, accep_states, delta)
-    nfa_lambda.process('aa')
+    nfa_lambda.process('baba')

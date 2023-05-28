@@ -23,4 +23,3 @@ class Alphabet:
 #a = Alphabet('a-v')
 #print(a)
 #print(a.gen_rand_string(9))
-
