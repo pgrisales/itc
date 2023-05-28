@@ -62,44 +62,43 @@ class Automata:
         self.accepting_states = accepting_states
         self.row = {}
         self.col = {}
-        self.delta = self.transitions_parser(alphabet, states, Delta)
+        self.delta, self.graph = self.transitions_parser(alphabet, states, Delta)
         self.estados_inaccesibles = None
 
-    #  def draw(self):
+    def view(self):
+      self.graph.view()
+
     def transitions_parser(self, alphabet, states, delta):
-        f = Digraph('finite_state_machine', filename='fsm.gv')
-        f.attr(rankdir='LR', size='8,5')
+      f = Digraph('finite_state_machine', filename='fsm.gv')
+      f.attr(rankdir='LR', size='8,5')
 
-        f.attr('node', shape='circle')
-        f.node(self.init_state)
+      f.attr('node', shape='circle')
+      f.node(self.init_state)
 
-        f.attr('node', shape='doublecircle')
-        print(self.accepting_states)
-        for i in self.accepting_states:
-            f.node(i)
+      f.attr('node', shape='doublecircle')
+      print(self.accepting_states)
+      for i in self.accepting_states:
+        f.node(i)
 
-        col_names = [i for i in alphabet] + ['$']
-        self.col = {i: idx + 1 for idx, i in enumerate(col_names)}
-        self.row = {i: idx for idx, i in enumerate(states)}
-        col_names = ['delta'] + col_names
-        data = np.empty((len(self.row), len(col_names)), dtype=object)
+      col_names =  [i for i in alphabet] + ['$']
+      self.col = {i: idx+1 for idx, i in enumerate(col_names)}
+      self.row = {i: idx for idx, i in enumerate(states)}
+      col_names = ['delta'] + col_names 
+      data = np.empty((len(self.row), len(col_names)), dtype=object)
 
-        f.attr('node', shape='circle')
+      f.attr('node', shape='circle')
 
-        for i in delta:
-            split = re.split(r'[:, >, ;]', i)
-            idx_row = int(self.row.get(split[0]))
-            idx_col = int(self.col.get(split[1]))
-            for i in split[2:]:
-                f.edge(split[0], i, label=col_names[idx_col])
+      for i in delta:
+        split = re.split(r'[:, >, ;]', i)
+        idx_row = int(self.row.get(split[0]))
+        idx_col = int(self.col.get(split[1]))
+        for i in split[2:]:
+          f.edge(split[0], i, label=col_names[idx_col])
 
-            data[idx_row, 0] = split[0]
-            data[idx_row, idx_col] = split[2:]
-
-        # f.view()
-
-        print(tabulate(data, headers=col_names, tablefmt="fancy_grid"))
-        return data
+        data[idx_row, 0] = split[0]
+        data[idx_row, idx_col] = split[2:]
+      print(tabulate(data, headers=col_names, tablefmt="fancy_grid"))
+      return data, f
 
     def process(self, s):
         root = Node([self.init_state, s], self)
@@ -183,12 +182,11 @@ class AFN(Automata):
 
     def procesarListaCadenasConversion(self, listaCadenas, nombreArchivo, imprimirPantalla):
         return
-
-
 class AFNLambda(Automata):
-    def __init__(self, alfabeto, estados, estadoInicial, accepting_states, Delta, alphabet, states, init_state):
-        AFNLambda.__init__(self, alfabeto, estados, estadoInicial, accepting_states, Delta)
-        super().__init__(alphabet, states, init_state, accepting_states, Delta)
+  def __init__(self, alfabeto, estados, estadoInicial, accepting_states, Delta):
+    AFN.__init__(self, alfabeto, estados, estadoInicial, accepting_states, Delta)
+  def __str__(self):
+    return  'AFN-Lambda'
 
     def __str__(self):
         return 'AFN-Lambda'

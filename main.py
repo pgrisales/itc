@@ -57,6 +57,7 @@ def test_producto_cartesiano():
 if __name__ == '__main__':
   input_file = './input.txt'
   automata = read_file(input_file)
+  automata.view()
 
 # Read input file
 #if __name__ == '__main__':
