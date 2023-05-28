@@ -28,40 +28,28 @@ def read_file(f_path):
 
   if a_type == 'dfa':
     return AFD(alphabet, states, init_state, accep_states, delta)
-    #dfa.process('aabb') 
   elif a_type == 'nfa':
     return AFN(alphabet, states, init_state, accep_states, delta)
   else:
     return AFNLambda(alphabet, states, init_state, accep_states, delta)
 
-def test_producto_cartesiano():
-  f1 = 'cartesiano1.txt'
-  f2 = 'cartesiano2.txt'
-  a = read_file(f1)
-  b = read_file(f2)
-  c = a.producto_cartesiano(b)
-  new_states = []
-  new_accep_states = []
-  for i in a.states:
-    for j in b.states:
-      s = ' '.join([i, j])
-      if i in a.accepting_states and j in a.accepting_states:
-        new_accep_states.append(s)
-      new_states.append(s)
-  print(new_states)
-  print(new_accep_states)
-
+def test_procces_string():
   return
 
+def test_producto_cartesiano():
+    f1 = './cartesiano1.txt'
+    f2 = './cartesiano2.txt'
+    a = read_file(f1)
+    b = read_file(f2)
+    c = AFD.hallarProductoCartesianoY(a, b)
 
-if __name__ == '__main__':
-  input_file = './input.txt'
-  automata = read_file(input_file)
-  automata.view()
+
+#if __name__ == '__main__':
+#  input_file = './input.txt'
+#  automata = read_file(input_file)
+#  #automata.view()
 
 # Read input file
-#if __name__ == '__main__':
-#  f1 = './input2.txt'
-#  f2 = './input2.txt'
-#  test_producto_cartesiano()
+if __name__ == '__main__':
+  test_producto_cartesiano()
 

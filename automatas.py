@@ -139,17 +139,61 @@ class AFD(Automata):
     def hallarComplemento(self, afdInput: AFD):
         return
 
+    @classmethod
     def hallarProductoCartesianoY(self, afd1: AFD, afd2: AFD):
-        return
+        return self.hallarProductoCartesiano(afd1, afd2, "interseccion")
 
+    @classmethod
     def hallarProductoCartesianoO(self, afd1: AFD, afd2: AFD):
-        return
+        return self.hallarProductoCartesiano(afd1, afd2, "union")
 
+    @classmethod
     def hallarProductoCartesianoDiferenciaSimetrica(self, afd1: AFD, afd2: AFD):
-        return
+        return self.hallarProductoCartesiano(afd1, afd2, "diferencia simetrica")
 
+    @classmethod
     def hallarProductoCartesiano(self, afd1: AFD, afd2: AFD, operacion: str):
-        return
+        nuevosEstados = []
+        llegada= []
+        nuevoestadoInicial = ""
+        nuevoDelta = []
+        nuevosEstadosAceptacion = []
+        nuevoalfabeto = afd1.alfabeto
+        parejas = []
+        delta1 = afd1.delta
+        delta2 = afd2.delta
+        for i in afd1.estados:
+            for j in afd2.estados:
+                parejas.append(i)
+                parejas.append(j)
+                nuevosEstados.append(parejas)
+                parejas = []
+        nuevoestadoInicial = str(nuevosEstados[0][0])+str(nuevosEstados[0][1])
+        for i in nuevosEstados:
+            for j in range(len(nuevoalfabeto)):
+                for k in delta1:
+                    if k[0] == i[0]:
+                        llegada.append(k[j+1][0])
+                for k in delta2:
+                    if k[0] == i[1]:
+                        llegada.append(k[j+1][0])
+                delta = str(i[0]) + str(i[1])+ ":"+nuevoalfabeto[j]+">"+str(llegada[0])+str(llegada[1])
+                delta = str(delta)
+                nuevoDelta.append(delta)
+                llegada = []
+                delta = ""
+        if operacion == "interseccion":
+            nuevosEstadosAceptacion = set(afd1.accepting_states) & set(afd2.accepting_states)
+        elif operacion == "union":
+            nuevosEstadosAceptacion = set(afd1.accepting_states) | set(afd2.accepting_states)
+        elif operacion == "diferencia":
+            nuevosEstadosAceptacion = set(afd1.accepting_states) - set(afd2.accepting_states)
+        else:
+            nuevosEstadosAceptacion = set(afd1.accepting_states) ^ set(afd2.accepting_states)
+        for i in range(len(nuevosEstados)):
+            nuevosEstados[i] = str(nuevosEstados[i][0])+str(nuevosEstados[i][1])
+        return AFD(nuevoalfabeto, nuevosEstados, nuevoestadoInicial, nuevosEstadosAceptacion, nuevoDelta)
+
 
     def simplificarAFD(self, afdInput: AFD):
         return
