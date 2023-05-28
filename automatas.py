@@ -65,30 +65,6 @@ class Automata:
         self.delta = self.transitions_parser(alphabet, states, Delta)
         self.estados_inaccesibles = None
 
-    def leerArchivo(self, archivo):
-        matriz = []
-        parametro = []
-        with open(archivo, 'r') as f:
-            lineas = f.read().splitlines()
-            matriz.append(lineas[0])
-            lineas.pop(0)
-            for i in lineas:
-                if i[0] != '#':
-                    parametro.append(i)
-                else:
-                    if len(parametro) > 0:
-                        matriz.append(parametro)
-                        parametro = []
-            matriz.append(parametro)
-        tipo = matriz[0]
-        matriz.pop(0)
-        if tipo == '#!nfe':
-            return AFNLambda(matriz[0], matriz[1], matriz[2], matriz[3], matriz[4])
-        elif tipo == '#!nfa':
-            return AFN(matriz[0], matriz[1], matriz[2], matriz[3], matriz[4])
-        elif tipo == '#!dfa':
-            return AFD(matriz[0], matriz[1], matriz[2], matriz[3], matriz[4])
-
     #  def draw(self):
     def transitions_parser(self, alphabet, states, delta):
         f = Digraph('finite_state_machine', filename='fsm.gv')
