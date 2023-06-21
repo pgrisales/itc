@@ -37,7 +37,7 @@ def read_file(f_path):
     return AFPD(alphabet, stackAlphabet, states, init_state, accep_states, delta)
   elif a_type == 'pda':
     return AFPN(alphabet, stackAlphabet, states, init_state, accep_states, delta)
-  elif a_type == 'dp2a':
-    return AFPD(alphabet, stackAlphabet, states, init_state, accep_states, delta)
-  elif a_type == 'mt':
-    return AFPD(alphabet, stackAlphabet, states, init_state, accep_states, delta)
+  elif a_type == 'msm':
+    return AF2P(alphabet, stackAlphabet, states, init_state, accep_states, delta)
+  elif a_type == 'tm':
+    return TM(alphabet, stackAlphabet, states, init_state, accep_states, delta)

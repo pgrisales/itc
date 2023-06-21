@@ -7,19 +7,20 @@ from graphviz import Digraph
 
 
 class Node:
-    def __init__(self, name, pila=[], automata=None, childs=None, parent=None):
+    def __init__(self, name, pila=[], pila2=[], automata=None, childs=None, parent=None):
         self.name = name
         self.a = automata
         self.pila = pila
+        self.pila2 = pila2
         self.parent = parent
         self.childs = self.set_childs(self.name)
 
     def set_childs(self, name):
         state = name[0].split(',')
         if len(state) > 1:
-            state, accion_pila, pila = state[0], state[1], self.pila
+            state, accion_pila, pila, pila2 = state[0], state[1], self.pila, self.pila2
         else:
-            state, pila = name[0], self.pila
+            state, pila, pila2 = name[0], self.pila, self.pila2
         s = name[1]
         if s:
             idx_row = self.a.row.get(state)
@@ -28,25 +29,58 @@ class Node:
             result = res[0].split(',')
             stack1 = True
             stack2 = True
-            if isinstance(self.a, AFPD) or isinstance(self.a, AFPN):
-                accion = str(result[1]).split('|')
-                if len(pila) > 0 and pila[-1] == accion[0]:
-                    if accion[1] != '$':
-                        pila.append(accion[1])
-                    else:
-                        pila.pop(-1)
-                elif accion[0] == '$':
-                    if accion[1] != '$':
-                        pila.append(accion[1])
+            if isinstance(self.a, AFPD) or isinstance(self.a, AFPN) or isinstance(self.a, AF2P):
+                if isinstance(self.a, AF2P):
+                    accion, accion2 = str(result[1]).split('|'), str(result[2]).split('|')
+                    do_nothing, do_nothing2 = False, False
+                    if accion[0] == '$' and accion[1] == '$': do_nothing = True 
+                    if accion2[0] == '$' and accion2[1] == '$': do_nothing2 = True 
+                    if not do_nothing:
+                        if accion[0] == '$':
+                            pila.append(accion[1])
+                        elif len(pila) > 0 and accion[0] == pila[-1]:
+                            if accion[1] == '$':
+                                pila.pop(-1)
+                            else:
+                                pila.append(accion[1])
+                        else:
+                            stack1 = False
+                    if not do_nothing2:
+                        if accion2[0] == '$':
+                            pila2.append(accion2[1])
+                        elif len(pila2) > 0 and accion2[0] == pila2[-1]:
+                            if accion2[1] == '$':
+                                pila2.pop(-1)
+                            else:
+                                pila2.append(accion2[1])
+                        else:
+                            stack2 = False
                 else:
-                    stack1 = False
-
+                    accion = str(result[1]).split('|')
+                    if len(pila) > 0 and pila[-1] == accion[0]:
+                        if accion[1] != '$':
+                            pila.append(accion[1])
+                        else:
+                            pila.pop(-1)
+                    elif accion[0] == '$':
+                        if accion[1] != '$':
+                            pila.append(accion[1])
+                    else:
+                        stack1 = False
             s = s[1:]
-            if result[0] and stack1:
-                res = [[i, s, pila] for i in res]
+            if result[0] and stack1 and stack2:
+                if isinstance(self.a, AF2P):
+                    res = [[i, s, pila, pila2] for i in res]
+                    print('Pila 1: ', pila, 'Pila 2: ', pila2)
+                else:
+                    res = [[i, s, pila] for i in res]
+                    print('Pila 1: ', pila)
                 for idx, i in enumerate(res):
-                    # print('pila hpta: ', state, s, pila)
-                    n_node = Node(i, pila, automata=self.a, parent=self)
+                    if isinstance(self.a, AF2P):
+                        n_node = Node(i, pila=pila, pila2=pila2, automata=self.a, parent=self)
+                    else:
+                        n_node = Node(i, pila=pila, automata=self.a, parent=self)
+
             else:
                 self.back_trace(True)
         else:
@@ -56,8 +90,8 @@ class Node:
         temp = []
         t = self
         while t.parent:
-            if isinstance(self.a, AFPD) or isinstance(self.a, AFPN):
-                salida = t.name  # + t.pila
+            if isinstance(self.a, AFPD) or isinstance(self.a, AFPN) or isinstance(self.a, AF2P):
+                salida = t.name[:2] #+ t.pila + t.pila2
                 temp.append(salida)
             else:
                 temp.append(t.name)
@@ -137,7 +171,7 @@ class Automata:
         return data, f
 
     def process(self, s):
-        root = Node([self.init_state, s], [], self)
+        root = Node([self.init_state, s], [], [], self)
 
     def exportar(self, archivo):
         return
@@ -158,7 +192,6 @@ class Automata:
 class AFPD(Automata):
     def __init__(self, alfabeto, alfabetPila, estados, estadoInicial, accepting_states, Delta):
         self.estados_limbo = None
-        self.pila = []
         Automata.__init__(self, alfabeto, estados,
                           estadoInicial, accepting_states, Delta)
 
@@ -166,10 +199,20 @@ class AFPD(Automata):
 class AFPN(Automata):
     def __init__(self, alfabeto, alfabetPila, estados, estadoInicial, accepting_states, Delta):
         self.estados_limbo = None
-        self.pila = []
         Automata.__init__(self, alfabeto, estados,
                           estadoInicial, accepting_states, Delta)
 
+class AF2P(Automata):
+    def __init__(self, alfabeto, alfabetPila, estados, estadoInicial, accepting_states, Delta):
+        self.estados_limbo = None
+        Automata.__init__(self, alfabeto, estados,
+                          estadoInicial, accepting_states, Delta)
+
+class TM(Automata):
+    def __init__(self, alfabeto, alfabetPila, estados, estadoInicial, accepting_states, Delta):
+        self.estados_limbo = None
+        Automata.__init__(self, alfabeto, estados,
+                          estadoInicial, accepting_states, Delta)
 
 class AFD(Automata):
     def __init__(self, alfabeto, estados, estadoInicial, accepting_states, Delta):

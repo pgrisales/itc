@@ -1,46 +1,52 @@
-class Prueba:
-  def __init__(self):
-    return
-  def probarAFD():
-    return
-  def probarAFN():
-    return
-  def probarAFNLambda():
-    return
-  def main():
-    return
-  def probarAFNtoAFD():
-    return
-  def probarAFNLambdaToAFN():
-    return
-  def probarComplemento():
-    return
-  def probarProductoCartesiano():
-    return
-  def probarSimplificacion():
-    return
-class Validacion:
-  def __init__(self):
-    return
-  def validarAFNtoAFD(listaDeAFNs):
-    return
-  def validarAFNLambdaToAFN(listaDeAFNLambdas):
-    return
+from processing import read_file
 
-def test_procces_string():
+def test_AFD():
+  input_file = './inputs/input.txt'
+  a = read_file(input_file)
+  a.process('abab')
+  a.view()
+
+def test_AFN():
+  input_file = './inputs/afpn.txt'
+  a = read_file(input_file)
+  a.process('abab')
+  a.view()
+
+def test_AFNLambda():
+  input_file = './inputs/afpn.txt'
+  a = read_file(input_file)
+  a.process('abab')
+  a.view()
+
+def test_AFPN():
+  input_file = './inputs/afpn.txt'
+  a = read_file(input_file)
+  a.process('abab')
+  a.view()
+
+def test_AFPD():
+  input_file = './inputs/afpd.txt'
+  a = read_file(input_file)
+  a.process('aabb')
+  a.view()
+
+def test_AF2P():
+  input_file = './inputs/af2p.txt'
+  a = read_file(input_file)
+  a.process('aabbcc')
+  a.view()
+
+def test_AFNtoAFD():
+  return
+def test_AFNLambdaToAFN():
+  return
+def test_Complemento():
   return
 
-def test_producto_cartesiano():
-    f1 = './cartesiano1.txt'
-    f2 = './cartesiano2.txt'
-    a = read_file(f1)
-    b = read_file(f2)
-    c = AFD.hallarProductoCartesianoY(a, b)
-
-def probarSimplificacion():
-  f1 = './simplificar1.txt'
-  f2 = './simplificar2.txt'
-  f3 = './simplificar3.txt'
+def test_Simplificacion():
+  f1 = './inputs/simplificar1.txt'
+  f2 = './inputs/simplificar2.txt'
+  f3 = './inputs/simplificar3.txt'
 
   print('')
   print('Autómata M1:')
@@ -67,3 +73,10 @@ def probarSimplificacion():
   print('Autómata M3\':')
   print('')
   AFD.simplificarAFD(c)
+
+def test_producto_cartesiano():
+    f1 = './inputs/cartesiano1.txt'
+    f2 = './inputs/cartesiano2.txt'
+    a = read_file(f1)
+    b = read_file(f2)
+    c = AFD.hallarProductoCartesianoY(a, b)

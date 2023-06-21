@@ -1,4 +1,4 @@
-#!msm
+#!tm
 #tapeAlphabet
 a-c
 #stackAlphabet
