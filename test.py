@@ -2,10 +2,10 @@ from processing import read_file
 from automatas import *
 
 def test_AFD():
-  input_file = './inputs/input.txt'
+  input_file = './inputs/simplificar2.txt'
   a = read_file(input_file)
   a.process('abab')
-  a.view()
+  # a.view()
 
 def test_AFN():
   input_file = './inputs/afpn.txt'
