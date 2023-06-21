@@ -63,7 +63,7 @@ def test_producto_cartesiano():
     b = read_file(f2)
     c = AFD.hallarProductoCartesianoY(a, b)
 
-# Taller 2
+# Taller 3
 def test_AFPN():
   input_file = './inputs/afpn.txt'
   a = read_file(input_file)
@@ -77,10 +77,16 @@ def test_AFPD():
   input_file = './inputs/afpd.txt'
   a = read_file(input_file)
   a.process('aabb')
+  a.process_detail('aabb')
+  a.procesarListaCadenas(['aabb', 'aaaa'])
+  a.exportar()
   a.view()
 
 def test_AF2P():
   input_file = './inputs/af2p.txt'
   a = read_file(input_file)
   a.process('aabbcc')
+  a.process_detail('aabbcc')
+  a.procesarListaCadenas(['aabbcc', 'aaaa'])
+  a.exportar()
   a.view()

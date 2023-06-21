@@ -32,8 +32,9 @@ def read_file(f_path):
     return AFD(alphabet, states, init_state, accep_states, delta, archivo=f)
   elif a_type == 'nfa':
     return AFN(alphabet, states, init_state, accep_states, delta, archivo=f)
+  elif a_type == 'nfe':
+    return AFNLambda(alphabet, states, init_state, accep_states, delta, archivo=f)
   elif a_type == 'dpda':
-    print('dpda')
     return AFPD(alphabet, stackAlphabet, states, init_state, accep_states, delta, archivo=f)
   elif a_type == 'pda':
     return AFPN(alphabet, stackAlphabet, states, init_state, accep_states, delta, archivo=f)
