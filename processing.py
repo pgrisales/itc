@@ -29,15 +29,15 @@ def read_file(f_path):
       delta.append(f[i])
 
   if a_type == 'dfa':
-    return AFD(alphabet, states, init_state, accep_states, delta)
+    return AFD(alphabet, states, init_state, accep_states, delta, archivo=f)
   elif a_type == 'nfa':
-    return AFN(alphabet, states, init_state, accep_states, delta)
+    return AFN(alphabet, states, init_state, accep_states, delta, archivo=f)
   elif a_type == 'dpda':
     print('dpda')
-    return AFPD(alphabet, stackAlphabet, states, init_state, accep_states, delta)
+    return AFPD(alphabet, stackAlphabet, states, init_state, accep_states, delta, archivo=f)
   elif a_type == 'pda':
-    return AFPN(alphabet, stackAlphabet, states, init_state, accep_states, delta)
+    return AFPN(alphabet, stackAlphabet, states, init_state, accep_states, delta, archivo=f)
   elif a_type == 'msm':
-    return AF2P(alphabet, stackAlphabet, states, init_state, accep_states, delta)
+    return AF2P(alphabet, stackAlphabet, states, init_state, accep_states, delta, archivo=f)
   elif a_type == 'tm':
-    return TM(alphabet, stackAlphabet, states, init_state, accep_states, delta)
+    return TM(alphabet, stackAlphabet, states, init_state, accep_states, delta, archivo=f)

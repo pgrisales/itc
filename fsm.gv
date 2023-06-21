@@ -5,11 +5,9 @@ digraph finite_state_machine {
 	s0
 	node [shape=doublecircle]
 	s0
-	s2
 	node [shape=circle]
-	s0 -> s0 [label="a['$|A', '$|A']"]
-	s0 -> s1 [label="b['A|$', '$|$']"]
-	s1 -> s1 [label="b['A|$', '$|$']"]
-	s1 -> s2 [label="c['$|$', 'A|$']"]
-	s2 -> s2 [label="c['$|$', 'A|$']"]
+	s0 -> s0 [label="a['$|A']"]
+	s0 -> s0 [label="b['$|B']"]
+	s0 -> s0 [label="b['B|$']"]
+	s0 -> s0 [label="b['A|$']"]
 }
