@@ -7,24 +7,46 @@ from graphviz import Digraph
 
 
 class Node:
-    def __init__(self, name, automata=None, childs=None, parent=None):
+    def __init__(self, name, pila=[], automata=None, childs=None, parent=None):
         self.name = name
         self.a = automata
+        self.pila = pila
         self.parent = parent
         self.childs = self.set_childs(self.name)
 
     def set_childs(self, name):
-        state = name[0]
+        state = name[0].split(',')
+        if len(state) > 1:
+            state, accion_pila, pila = state[0], state[1], self.pila
+        else:
+            state, pila = name[0], self.pila
         s = name[1]
         if s:
             idx_row = self.a.row.get(state)
             idx_col = self.a.col.get(s[0])
             res = self.a.delta[idx_row, idx_col]
+            result = res[0].split(',')
+            stack1 = True
+            stack2 = True
+            if isinstance(self.a, AFPD) or isinstance(self.a, AFPN):
+                accion = str(result[1]).split('|')
+                if len(pila) > 0 and pila[-1] == accion[0]:
+                    if accion[1] != '$':
+                        pila.append(accion[1])
+                    else:
+                        pila.pop(-1)
+                elif accion[0] == '$':
+                    if accion[1] != '$':
+                        pila.append(accion[1])
+                else:
+                    stack1 = False
+
             s = s[1:]
-            if res:
-                res = [[i, s] for i in res]
+            if result[0] and stack1:
+                res = [[i, s, pila] for i in res]
                 for idx, i in enumerate(res):
-                    n_node = Node(i, automata=self.a, parent=self)
+                    # print('pila hpta: ', state, s, pila)
+                    n_node = Node(i, pila, automata=self.a, parent=self)
             else:
                 self.back_trace(True)
         else:
@@ -34,7 +56,11 @@ class Node:
         temp = []
         t = self
         while t.parent:
-            temp.append(t.name)
+            if isinstance(self.a, AFPD) or isinstance(self.a, AFPN):
+                salida = t.name  # + t.pila
+                temp.append(salida)
+            else:
+                temp.append(t.name)
             t = t.parent
         temp.append(t.name)
         # path = ' -> '.join(temp[::-1])
@@ -42,8 +68,13 @@ class Node:
         if abort:
             temp.append('Abortado')
         else:
-            if temp[-1][0] in self.a.accepting_states:
-                temp.append('Aceptacion')
+            final_state = str(temp[-1][0]).split(',')[0]
+            if final_state in self.a.accepting_states:
+                if isinstance(self.a, AFPD):
+                    if len(t.pila) == 0:
+                        temp.append('Aceptacion')
+                else:
+                    temp.append('Aceptacion')
             else:
                 temp.append('No aceptacion')
         # temp = ' -> '.join([', '.join(i) for i in temp])
@@ -62,46 +93,51 @@ class Automata:
         self.accepting_states = accepting_states
         self.row = {}
         self.col = {}
-        self.delta, self.graph = self.transitions_parser(alphabet, states, Delta)
+        self.delta, self.graph = self.transitions_parser(
+            alphabet, states, Delta)
         self.estados_inaccesibles = None
 
     def view(self):
-      self.graph.view()
+        self.graph.view()
 
     def transitions_parser(self, alphabet, states, delta):
-      f = Digraph('finite_state_machine', filename='fsm.gv')
-      f.attr(rankdir='LR', size='8,5')
+        f = Digraph('finite_state_machine', filename='fsm.gv')
+        f.attr(rankdir='LR', size='8,5')
 
-      f.attr('node', shape='circle')
-      f.node(self.init_state)
+        f.attr('node', shape='circle')
+        if self.init_state in self.accepting_states:
+            f.attr('node', shape='doublecircle')
+        f.node(self.init_state)
 
-      f.attr('node', shape='doublecircle')
-      print(self.accepting_states)
-      for i in self.accepting_states:
-        f.node(i)
+        f.attr('node', shape='doublecircle')
+        for i in self.accepting_states:
+            f.node(i)
 
-      col_names =  [i for i in alphabet] + ['$']
-      self.col = {i: idx+1 for idx, i in enumerate(col_names)}
-      self.row = {i: idx for idx, i in enumerate(states)}
-      col_names = ['delta'] + col_names 
-      data = np.empty((len(self.row), len(col_names)), dtype=object)
+        col_names = [i for i in alphabet] + ['$']
+        self.col = {i: idx+1 for idx, i in enumerate(col_names)}
+        self.row = {i: idx for idx, i in enumerate(states)}
+        col_names = ['delta'] + col_names
+        data = np.empty((len(self.row), len(col_names)), dtype=object)
 
-      f.attr('node', shape='circle')
+        f.attr('node', shape='circle')
 
-      for i in delta:
-        split = re.split(r'[:, >, ;]', i)
-        idx_row = int(self.row.get(split[0]))
-        idx_col = int(self.col.get(split[1]))
-        for i in split[2:]:
-          f.edge(split[0], i, label=col_names[idx_col])
+        for i in delta:
+            split = re.split(r'[: > ;]', i)
+            print(split)
+            idx_row = int(self.row.get(split[0]))
+            idx_col = int(self.col.get(split[1]))
+            for i in split[2:]:
+                temp = i.split(',')
+                label = col_names[idx_col] + str(temp[1:])
+                f.edge(split[0], temp[0], label=label)
 
-        data[idx_row, 0] = split[0]
-        data[idx_row, idx_col] = split[2:]
-      print(tabulate(data, headers=col_names, tablefmt="fancy_grid"))
-      return data, f
+            data[idx_row, 0] = split[0]
+            data[idx_row, idx_col] = split[2:]
+        print(tabulate(data, headers=col_names, tablefmt="fancy_grid"))
+        return data, f
 
     def process(self, s):
-        root = Node([self.init_state, s], self)
+        root = Node([self.init_state, s], [], self)
 
     def exportar(self, archivo):
         return
@@ -119,10 +155,27 @@ class Automata:
         return
 
 
+class AFPD(Automata):
+    def __init__(self, alfabeto, alfabetPila, estados, estadoInicial, accepting_states, Delta):
+        self.estados_limbo = None
+        self.pila = []
+        Automata.__init__(self, alfabeto, estados,
+                          estadoInicial, accepting_states, Delta)
+
+
+class AFPN(Automata):
+    def __init__(self, alfabeto, alfabetPila, estados, estadoInicial, accepting_states, Delta):
+        self.estados_limbo = None
+        self.pila = []
+        Automata.__init__(self, alfabeto, estados,
+                          estadoInicial, accepting_states, Delta)
+
+
 class AFD(Automata):
     def __init__(self, alfabeto, estados, estadoInicial, accepting_states, Delta):
         self.estados_limbo = None
-        Automata.__init__(self, alfabeto, estados, estadoInicial, accepting_states, Delta)
+        Automata.__init__(self, alfabeto, estados,
+                          estadoInicial, accepting_states, Delta)
 
     def verificarCorregirCompletitudAFD(self):
         return
@@ -154,7 +207,7 @@ class AFD(Automata):
     @classmethod
     def hallarProductoCartesiano(self, afd1: AFD, afd2: AFD, operacion: str):
         nuevosEstados = []
-        llegada= []
+        llegada = []
         nuevoestadoInicial = ""
         nuevoDelta = []
         nuevosEstadosAceptacion = []
@@ -177,21 +230,27 @@ class AFD(Automata):
                 for k in delta2:
                     if k[0] == i[1]:
                         llegada.append(k[j+1][0])
-                delta = str(i[0]) + str(i[1])+ ":"+nuevoalfabeto[j]+">"+str(llegada[0])+str(llegada[1])
+                delta = str(i[0]) + str(i[1]) + ":"+nuevoalfabeto[j] + \
+                    ">"+str(llegada[0])+str(llegada[1])
                 delta = str(delta)
                 nuevoDelta.append(delta)
                 llegada = []
                 delta = ""
         if operacion == "interseccion":
-            nuevosEstadosAceptacion = set(afd1.accepting_states) & set(afd2.accepting_states)
+            nuevosEstadosAceptacion = set(
+                afd1.accepting_states) & set(afd2.accepting_states)
         elif operacion == "union":
-            nuevosEstadosAceptacion = set(afd1.accepting_states) | set(afd2.accepting_states)
+            nuevosEstadosAceptacion = set(
+                afd1.accepting_states) | set(afd2.accepting_states)
         elif operacion == "diferencia":
-            nuevosEstadosAceptacion = set(afd1.accepting_states) - set(afd2.accepting_states)
+            nuevosEstadosAceptacion = set(
+                afd1.accepting_states) - set(afd2.accepting_states)
         else:
-            nuevosEstadosAceptacion = set(afd1.accepting_states) ^ set(afd2.accepting_states)
+            nuevosEstadosAceptacion = set(
+                afd1.accepting_states) ^ set(afd2.accepting_states)
         for i in range(len(nuevosEstados)):
-            nuevosEstados[i] = str(nuevosEstados[i][0])+str(nuevosEstados[i][1])
+            nuevosEstados[i] = str(nuevosEstados[i][0]) + \
+                str(nuevosEstados[i][1])
         return AFD(nuevoalfabeto, nuevosEstados, nuevoestadoInicial, nuevosEstadosAceptacion, nuevoDelta)
 
     def simplificarAFD(afdInput):
@@ -201,7 +260,8 @@ class AFD(Automata):
         accep_states = []
         delta = []
         # Tabla triangular
-        table = np.full((len(afdInput.estados), len(afdInput.estados)), 'E', dtype=str)
+        table = np.full((len(afdInput.estados), len(
+            afdInput.estados)), 'E', dtype=str)
 
         # La diagonal son los números de estado
         for i in range(len(table)):
@@ -227,7 +287,7 @@ class AFD(Automata):
         marked_this_iter = True
 
         # Iteraciones siguientes
-        while(marked_this_iter):
+        while (marked_this_iter):
             iter_number += 1
             marked_this_iter = False
 
@@ -289,7 +349,7 @@ class AFD(Automata):
                         accounted_for[i] = True
                 # Potencial siguiente estado de M'
                 new_state += 1
-    
+
         # Estado inicial
         for i in equivalence:
             if (int(afdInput.init_state[1:]) in equivalence[i]):
@@ -351,9 +411,11 @@ class AFD(Automata):
 
         return AFD(afdInput.alfabeto, states, init_state, accep_states, delta)
 
+
 class AFN(Automata):
     def __init__(self, alfabeto, estados, estadoInicial, accepting_states, Delta):
-        Automata.__init__(self, alfabeto, estados, estadoInicial, accepting_states, Delta)
+        Automata.__init__(self, alfabeto, estados,
+                          estadoInicial, accepting_states, Delta)
 
     #  def __init__(self, nombreArchivo):
     #    return
@@ -378,11 +440,15 @@ class AFN(Automata):
 
     def procesarListaCadenasConversion(self, listaCadenas, nombreArchivo, imprimirPantalla):
         return
+
+
 class AFNLambda(Automata):
-  def __init__(self, alfabeto, estados, estadoInicial, accepting_states, Delta):
-    AFN.__init__(self, alfabeto, estados, estadoInicial, accepting_states, Delta)
-  def __str__(self):
-    return  'AFN-Lambda'
+    def __init__(self, alfabeto, estados, estadoInicial, accepting_states, Delta):
+        AFN.__init__(self, alfabeto, estados,
+                     estadoInicial, accepting_states, Delta)
 
     def __str__(self):
         return 'AFN-Lambda'
+
+        def __str__(self):
+            return 'AFN-Lambda'
