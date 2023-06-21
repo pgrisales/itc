@@ -120,7 +120,7 @@ class Node:
 
 
 class Automata:
-    def __init__(self, alphabet, states, init_state, accepting_states, Delta):
+    def __init__(self, alphabet, states, init_state, accepting_states, Delta, archivo):
         self.alfabeto = alphabet
         self.estados = states
         self.init_state = init_state
@@ -130,6 +130,7 @@ class Automata:
         self.delta, self.graph = self.transitions_parser(
             alphabet, states, Delta)
         self.estados_inaccesibles = None
+        self.archivo = archivo
 
     def view(self):
         self.graph.view()
@@ -173,52 +174,70 @@ class Automata:
     def process(self, s):
         root = Node([self.init_state, s], [], [], self)
 
-    def exportar(self, archivo):
-        return
+    def process_detail(self, s):
+        root = Node([self.init_state, s], [], [], self)
 
-    def procesarCadena(self, cadena):
-        return False
 
-    def procesarCadenaConDetalles(self, cadena):
-        return False
+    def exportar(self):
+        exp = self.archivo 
+        exp.append('\n\n# Estados inaccesibles\n\n')
+        exp.append('# Estados limbo\n\n')
+        name =  ''
+        if isinstance(self, AFD):
+            name = 'afd.txt'
+        elif isinstance(self, AFN):
+            name = 'afd.txt'
+        elif isinstance(self, AFNLambda):
+            name = 'afn-lambda.txt'
+        elif isinstance(self, AFPD):
+            name = 'afpd.txt'
+        elif isinstance(self, AFPN):
+            name = 'afpn.txt'
+        elif isinstance(self, AF2P):
+            name = 'af2p.txt'
 
-    def procesarListaCadenas(self, listaCadenas, nombreArchivo, imprimirPantalla):
-        return
+        with open('./outputs/'+name, 'w') as f:
+            f.write('\n'.join(exp))
+
+    def procesarListaCadenas(self, listaCadenas):
+        for i in listaCadenas:
+            print()
+            self.process(i)
 
     def hallarEstadosInaccesibles(self):
-        return
+        print('Procesando...')
 
 
 class AFPD(Automata):
-    def __init__(self, alfabeto, alfabetPila, estados, estadoInicial, accepting_states, Delta):
+    def __init__(self, alfabeto, alfabetPila, estados, estadoInicial, accepting_states, Delta, archivo):
         self.estados_limbo = None
         Automata.__init__(self, alfabeto, estados,
-                          estadoInicial, accepting_states, Delta)
+                          estadoInicial, accepting_states, Delta, archivo)
 
 
 class AFPN(Automata):
-    def __init__(self, alfabeto, alfabetPila, estados, estadoInicial, accepting_states, Delta):
+    def __init__(self, alfabeto, alfabetPila, estados, estadoInicial, accepting_states, Delta, archivo):
         self.estados_limbo = None
         Automata.__init__(self, alfabeto, estados,
-                          estadoInicial, accepting_states, Delta)
+                          estadoInicial, accepting_states, Delta, archivo)
 
 class AF2P(Automata):
-    def __init__(self, alfabeto, alfabetPila, estados, estadoInicial, accepting_states, Delta):
+    def __init__(self, alfabeto, alfabetPila, estados, estadoInicial, accepting_states, Delta, archivo):
         self.estados_limbo = None
         Automata.__init__(self, alfabeto, estados,
-                          estadoInicial, accepting_states, Delta)
+                          estadoInicial, accepting_states, Delta, archivo)
 
 class TM(Automata):
-    def __init__(self, alfabeto, alfabetPila, estados, estadoInicial, accepting_states, Delta):
+    def __init__(self, alfabeto, alfabetPila, estados, estadoInicial, accepting_states, Delta, archivo):
         self.estados_limbo = None
         Automata.__init__(self, alfabeto, estados,
-                          estadoInicial, accepting_states, Delta)
+                          estadoInicial, accepting_states, Delta, archivo)
 
 class AFD(Automata):
-    def __init__(self, alfabeto, estados, estadoInicial, accepting_states, Delta):
+    def __init__(self, alfabeto, estados, estadoInicial, accepting_states, Delta, archivo):
         self.estados_limbo = None
         Automata.__init__(self, alfabeto, estados,
-                          estadoInicial, accepting_states, Delta)
+                          estadoInicial, accepting_states, Delta, archivo)
 
     def verificarCorregirCompletitudAFD(self):
         return
@@ -456,13 +475,9 @@ class AFD(Automata):
 
 
 class AFN(Automata):
-    def __init__(self, alfabeto, estados, estadoInicial, accepting_states, Delta):
+    def __init__(self, alfabeto, estados, estadoInicial, accepting_states, Delta, archivo):
         Automata.__init__(self, alfabeto, estados,
-                          estadoInicial, accepting_states, Delta)
-
-    #  def __init__(self, nombreArchivo):
-    #    return
-
+                          estadoInicial, accepting_states, Delta, archivo)
     def __str__(self):
         return 'AFN'
 
@@ -486,12 +501,9 @@ class AFN(Automata):
 
 
 class AFNLambda(Automata):
-    def __init__(self, alfabeto, estados, estadoInicial, accepting_states, Delta):
+    def __init__(self, alfabeto, estados, estadoInicial, accepting_states, Delta, archivo):
         AFN.__init__(self, alfabeto, estados,
-                     estadoInicial, accepting_states, Delta)
+                     estadoInicial, accepting_states, Delta, archivo)
 
     def __str__(self):
         return 'AFN-Lambda'
-
-        def __str__(self):
-            return 'AFN-Lambda'

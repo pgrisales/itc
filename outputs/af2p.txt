@@ -1,0 +1,27 @@
+#!msm
+#tapeAlphabet
+a-c
+#stackAlphabet
+A-B
+#states
+s0
+s1
+s2
+#initial
+s0
+#accepting
+s0
+s2
+#transitions
+s0:a>s0,$|A,$|A
+s0:b>s1,A|$,$|$
+s1:b>s1,A|$,$|$
+s1:c>s2,$|$,A|$
+s2:c>s2,$|$,A|$
+
+
+# Estados inaccesibles
+
+
+# Estados limbo
+

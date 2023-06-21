@@ -19,24 +19,6 @@ def test_AFNLambda():
   a.process('abab')
   a.view()
 
-def test_AFPN():
-  input_file = './inputs/afpn.txt'
-  a = read_file(input_file)
-  a.process('abab')
-  a.view()
-
-def test_AFPD():
-  input_file = './inputs/afpd.txt'
-  a = read_file(input_file)
-  a.process('aabb')
-  a.view()
-
-def test_AF2P():
-  input_file = './inputs/af2p.txt'
-  a = read_file(input_file)
-  a.process('aabbcc')
-  a.view()
-
 def test_AFNtoAFD():
   return
 def test_AFNLambdaToAFN():
@@ -83,3 +65,31 @@ def test_producto_cartesiano():
     a = read_file(f1)
     b = read_file(f2)
     c = AFD.hallarProductoCartesianoY(a, b)
+
+# Taller 3
+def test_AFPN():
+  input_file = './inputs/afpn.txt'
+  a = read_file(input_file)
+  a.process('abab')
+  a.process_detail('abab')
+  a.procesarListaCadenas(['abab', 'aaaa'])
+  a.exportar()
+  a.view()
+
+def test_AFPD():
+  input_file = './inputs/afpd.txt'
+  a = read_file(input_file)
+  a.process('aabb')
+  a.process_detail('aabb')
+  a.procesarListaCadenas(['aabb', 'aaaa'])
+  a.exportar()
+  a.view()
+
+def test_AF2P():
+  input_file = './inputs/af2p.txt'
+  a = read_file(input_file)
+  a.process('aabbcc')
+  a.process_detail('aabbcc')
+  a.procesarListaCadenas(['aabbcc', 'aaaa'])
+  a.exportar()
+  a.view()

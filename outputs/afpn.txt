@@ -1,0 +1,23 @@
+#!pda
+#tapeAlphabet
+a-b
+#stackAlphabet
+A-B
+#states
+s0
+#initial
+s0
+#accepting
+s0
+#transitions
+s0:a>s0,$|A
+s0:b>s0,$|B
+s0:b>s0,B|$
+s0:b>s0,A|$
+
+
+# Estados inaccesibles
+
+
+# Estados limbo
+
