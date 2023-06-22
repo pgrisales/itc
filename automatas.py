@@ -16,7 +16,10 @@ class Node:
         self.childs = self.set_childs(self.name)
 
     def set_childs(self, name):
-        state = name[0].split(',')
+        if isinstance(name[0], str):
+            state = name[0].split(',')
+        else:
+            state = name[0]
         if len(state) > 1:
             state, accion_pila, pila, pila2 = state[0], state[1], self.pila, self.pila2
         else:
@@ -26,10 +29,19 @@ class Node:
             idx_row = self.a.row.get(state)
             idx_col = self.a.col.get(s[0])
             res = self.a.delta[idx_row, idx_col]
-            result = res[0].split(',')
+            if res != None:
+                result = True
+            else:
+                idx_col = self.a.col.get('$')
+                res = self.a.delta[idx_row, idx_col]
+                if res != None:
+                    result = True
+                else:
+                    result = False
             stack1 = True
             stack2 = True
             if isinstance(self.a, AFPD) or isinstance(self.a, AFPN) or isinstance(self.a, AF2P):
+                result = res[0].split(',')
                 if isinstance(self.a, AF2P):
                     accion, accion2 = str(result[1]).split('|'), str(result[2]).split('|')
                     do_nothing, do_nothing2 = False, False
@@ -68,18 +80,25 @@ class Node:
                     else:
                         stack1 = False
             s = s[1:]
-            if result[0] and stack1 and stack2:
+            if result and stack1 and stack2:
                 if isinstance(self.a, AF2P):
                     res = [[i, s, pila, pila2] for i in res]
-                    print('Pila 1: ', pila, 'Pila 2: ', pila2)
-                else:
+                    print('Pila 1: ', pila, '       Pila 2: ', pila2)
+                elif isinstance(self.a, AFPD) or isinstance(self.a, AFPN):
                     res = [[i, s, pila] for i in res]
                     print('Pila 1: ', pila)
+                else:
+                    res = [[i, s] for i in res]
                 for idx, i in enumerate(res):
                     if isinstance(self.a, AF2P):
                         n_node = Node(i, pila=pila, pila2=pila2, automata=self.a, parent=self)
-                    else:
+                    elif isinstance(self.a, AFPD) or isinstance(self.a, AFPN):
                         n_node = Node(i, pila=pila, automata=self.a, parent=self)
+                    else:
+                        res = [[i[0], s] for i in res]
+                        for idx, i in enumerate(res):
+                            n_node = Node(i, automata=self.a, parent=self)
+
 
             else:
                 self.back_trace(True)
@@ -163,7 +182,10 @@ class Automata:
             idx_col = int(self.col.get(split[1]))
             for i in split[2:]:
                 temp = i.split(',')
-                label = col_names[idx_col] + str(temp[1:])
+                if isinstance(self, AFPD) or isinstance(self, AFPN) or isinstance(self, AF2P):
+                    label = col_names[idx_col] + str(temp[1:])
+                else:
+                    label = col_names[idx_col]
                 f.edge(split[0], temp[0], label=label)
 
             data[idx_row, 0] = split[0]

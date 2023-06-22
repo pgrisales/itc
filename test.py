@@ -2,29 +2,34 @@ from processing import read_file
 from automatas import *
 
 def test_AFD():
-  input_file = './inputs/simplificar2.txt'
+  input_file = './inputs/afd.txt'
   a = read_file(input_file)
-  a.process('abab')
+  a.process('baab')
+  a.process_detail('baab')
+  a.procesarListaCadenas(['baab', 'abaa'])
+  a.exportar()
   a.view()
 
+def test_Complemento():
+  return
+
 def test_AFN():
-  input_file = './inputs/afpn.txt'
+  input_file = './inputs/afn.txt'
   a = read_file(input_file)
-  a.process('abab')
+  a.process('aabb')
+  a.process_detail('aabb')
+  a.procesarListaCadenas(['aabb', 'aaaa'])
+  a.exportar()
   a.view()
 
 def test_AFNLambda():
-  input_file = './inputs/afpn.txt'
+  input_file = './inputs/afn-lambda.txt'
   a = read_file(input_file)
   a.process('abab')
+  a.process_detail('abab')
+  a.procesarListaCadenas(['abab', 'aaaa'])
+  a.exportar()
   a.view()
-
-def test_AFNtoAFD():
-  return
-def test_AFNLambdaToAFN():
-  return
-def test_Complemento():
-  return
 
 def test_Simplificacion():
   f1 = './inputs/simplificar1.txt'
