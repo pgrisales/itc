@@ -10,9 +10,6 @@ def test_AFD():
   a.exportar()
   a.view()
 
-def test_Complemento():
-  return
-
 def test_AFN():
   input_file = './inputs/afn.txt'
   a = read_file(input_file)

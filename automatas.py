@@ -208,7 +208,7 @@ class Automata:
         if isinstance(self, AFD):
             name = 'afd.txt'
         elif isinstance(self, AFN):
-            name = 'afd.txt'
+            name = 'afn.txt'
         elif isinstance(self, AFNLambda):
             name = 'afn-lambda.txt'
         elif isinstance(self, AFPD):

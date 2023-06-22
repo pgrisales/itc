@@ -19,8 +19,3 @@ class Alphabet:
 
   def __str__(self):
     return str(self.alphabet)
-
-#a = Alphabet('a-v')
-#print(a)
-#print(a.gen_rand_string(9))
-
